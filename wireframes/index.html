@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MacMeetingCam — UI Wireframes</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --accent: #e94560;
+    --accent2: #533483;
+    --text: #eee;
+    --text-dim: #999;
+    --border: #2a2a4a;
+    --window-bg: #1e1e2e;
+    --sidebar-bg: #181828;
+    --input-bg: #2a2a3e;
+    --green: #4ade80;
+    --yellow: #facc15;
+    --blue: #60a5fa;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px;
+    line-height: 1.5;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .page-subtitle {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 48px;
+  }
+
+  .wireframe-section {
+    margin-bottom: 64px;
+  }
+
+  .wireframe-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .wireframe-section .description {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  /* macOS Window Chrome */
+  .macos-window {
+    background: var(--window-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    max-width: 800px;
+  }
+
+  .macos-window.wide {
+    max-width: 900px;
+  }
+
+  .titlebar {
+    background: linear-gradient(180deg, #2a2a3e, #222238);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 7px;
+  }
+
+  .traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .traffic-light.red { background: #ff5f57; }
+  .traffic-light.yellow { background: #ffbd2e; }
+  .traffic-light.green { background: #28c840; }
+
+  .titlebar-text {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-right: 52px;
+  }
+
+  /* Settings Layout */
+  .settings-layout {
+    display: flex;
+    min-height: 520px;
+  }
+
+  .sidebar {
+    width: 160px;
+    background: var(--sidebar-bg);
+    padding: 16px 8px;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+  }
+
+  .sidebar-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+  }
+
+  .sidebar-item.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .sidebar-icon {
+    font-size: 15px;
+    width: 20px;
+    text-align: center;
+  }
+
+  .content-area {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .content-area h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  /* Preview Area */
+  .preview-area {
+    background: #000;
+    border-radius: 8px;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .preview-area .silhouette {
+    width: 120px;
+    height: 160px;
+    background: linear-gradient(180deg, #3a3a5a, #2a2a4a);
+    border-radius: 60px 60px 30px 30px;
+    position: relative;
+  }
+
+  .preview-area .silhouette::before {
+    content: '';
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(180deg, #4a4a6a, #3a3a5a);
+    border-radius: 50%;
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .preview-area .bg-effect {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(233,69,96,0.15), rgba(83,52,131,0.15));
+  }
+
+  .preview-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .preview-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  /* Form Controls */
+  .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 16px;
+  }
+
+  .form-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    width: 130px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .form-select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 32px 7px 12px;
+    color: var(--text);
+    font-size: 13px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23999'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 220px;
+  }
+
+  .form-toggle {
+    display: flex;
+    gap: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .toggle-option {
+    padding: 6px 16px;
+    font-size: 12px;
+    background: var(--input-bg);
+    color: var(--text-dim);
+    cursor: pointer;
+    border-right: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+
+  .toggle-option:last-child { border-right: none; }
+
+  .toggle-option.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    background: rgba(74,222,128,0.15);
+    color: var(--green);
+    border: 1px solid rgba(74,222,128,0.3);
+  }
+
+  .status-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Slider */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .slider-track {
+    flex: 1;
+    height: 4px;
+    background: var(--input-bg);
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .slider-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .slider-thumb {
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .slider-value {
+    font-size: 12px;
+    color: var(--text);
+    min-width: 48px;
+    text-align: right;
+    background: var(--input-bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: -8px;
+    margin-bottom: 16px;
+    padding: 0 0 0 146px;
+  }
+
+  /* Image Grid */
+  .image-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .image-thumb {
+    width: 90px;
+    height: 60px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+  }
+
+  .image-thumb.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(233,69,96,0.3);
+  }
+
+  .image-thumb .thumb-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .image-thumb .check {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+  }
+
+  .image-thumb.add-btn {
+    border: 2px dashed var(--border);
+    background: transparent;
+  }
+
+  .image-thumb.add-btn .thumb-content {
+    font-size: 24px;
+    color: var(--text-dim);
+  }
+
+  .bg-1 { background: linear-gradient(135deg, #2d5016, #1a3a0a); }
+  .bg-2 { background: linear-gradient(135deg, #1e3a5f, #0a1628); }
+  .bg-3 { background: linear-gradient(135deg, #5a2d0c, #3a1a05); }
+  .bg-4 { background: linear-gradient(135deg, #3a1a5a, #1a0a3a); }
+
+  /* Info Box */
+  .info-box {
+    background: rgba(96,165,250,0.1);
+    border: 1px solid rgba(96,165,250,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--blue);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .info-box .info-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Hotkey Table */
+  .hotkey-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .hotkey-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .hotkey-table td:first-child {
+    color: var(--text-dim);
+    width: 200px;
+  }
+
+  .hotkey-table td:last-child {
+    text-align: right;
+  }
+
+  .key-combo {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .key {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-family: -apple-system, monospace;
+    color: var(--text);
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .record-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    margin-left: 10px;
+    transition: all 0.15s;
+  }
+
+  .record-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Menubar Popover */
+  .menubar-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .fake-menubar {
+    background: rgba(30,30,46,0.95);
+    backdrop-filter: blur(20px);
+    padding: 4px 16px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 0;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+
+  .menubar-icon {
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .menubar-icon:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .menubar-icon.active {
+    background: rgba(255,255,255,0.15);
+  }
+
+  .popover-arrow {
+    width: 16px;
+    height: 8px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .popover-arrow::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--border);
+  }
+
+  .popover-arrow::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 1px;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid var(--window-bg);
+  }
+
+  .popover {
+    background: var(--window-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 280px;
+    padding: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .popover-preview {
+    background: #000;
+    border-radius: 8px;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .popover-preview .silhouette {
+    width: 60px;
+    height: 80px;
+    background: linear-gradient(180deg, #3a3a5a, #2a2a4a);
+    border-radius: 30px 30px 15px 15px;
+    position: relative;
+  }
+
+  .popover-preview .silhouette::before {
+    content: '';
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(180deg, #4a4a6a, #3a3a5a);
+    border-radius: 50%;
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .popover-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .popover-status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .popover-status .dot.live { background: var(--green); }
+  .popover-status .dot.frozen { background: var(--yellow); }
+  .popover-status .dot.looping { background: var(--accent); }
+
+  .quick-buttons {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .quick-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text-dim);
+  }
+
+  .quick-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .quick-btn .btn-icon {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  .quick-btn .btn-label {
+    display: block;
+  }
+
+  .popover-camera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .popover-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .popover-footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .popover-footer a:hover {
+    color: var(--text);
+  }
+
+  /* Floating Preview */
+  .floating-preview {
+    background: var(--window-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    width: 300px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  .floating-titlebar {
+    background: rgba(30,30,46,0.8);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .floating-titlebar .traffic-lights {
+    gap: 5px;
+  }
+
+  .floating-titlebar .traffic-light {
+    width: 10px;
+    height: 10px;
+  }
+
+  .pin-btn {
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(233,69,96,0.2);
+    color: var(--accent);
+    border: none;
+  }
+
+  .floating-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: rgba(30,30,46,0.6);
+  }
+
+  .floating-status {
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .floating-btns {
+    display: flex;
+    gap: 4px;
+  }
+
+  .floating-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .floating-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* Timeline */
+  .timeline {
+    background: var(--input-bg);
+    border-radius: 4px;
+    height: 32px;
+    position: relative;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .timeline-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(233,69,96,0.2), rgba(233,69,96,0.4));
+    width: 100%;
+    position: relative;
+  }
+
+  .timeline-playhead {
+    position: absolute;
+    right: 20%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent);
+  }
+
+  .timeline-playhead::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Mode Tabs */
+  .mode-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+
+  .mode-tab {
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--input-bg);
+    cursor: pointer;
+    border-right: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+
+  .mode-tab:last-child { border-right: none; }
+
+  .mode-tab.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .mode-tab:hover:not(.active) {
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* Menubar States */
+  .menubar-states {
+    display: flex;
+    gap: 32px;
+    margin-top: 24px;
+    justify-content: center;
+  }
+
+  .menubar-state {
+    text-align: center;
+  }
+
+  .menubar-state-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin: 0 auto 6px;
+  }
+
+  .menubar-state-label {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .menubar-state-icon.state-live { border-color: var(--green); }
+  .menubar-state-icon.state-effect { border-color: var(--blue); }
+  .menubar-state-icon.state-frozen { border-color: var(--yellow); }
+  .menubar-state-icon.state-looping { border-color: var(--accent); }
+
+  /* Restore Defaults */
+  .text-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .text-btn:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+
+  /* Section divider */
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 12px 0;
+  }
+
+  /* Right-click menu */
+  .context-menu {
+    background: var(--window-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    width: 200px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  .context-item {
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text);
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .context-item:hover {
+    background: var(--accent);
+  }
+
+  .context-item.disabled {
+    color: var(--text-dim);
+  }
+
+  .context-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 8px;
+  }
+
+  .context-shortcut {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* Layout helpers */
+  .flex-row {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .annotation {
+    background: rgba(233,69,96,0.1);
+    border: 1px solid rgba(233,69,96,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  .annotation strong {
+    color: var(--accent);
+  }
+
+  /* General tab */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .fake-checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .fake-checkbox.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<h1>MacMeetingCam</h1>
+<p class="page-subtitle">UI Wireframes &mdash; Virtual Camera App for macOS</p>
+
+<!-- ==================== CAMERA TAB ==================== -->
+<div class="wireframe-section">
+  <h2>1. Settings Window &mdash; Camera Tab</h2>
+  <p class="description">Main configuration window. Source camera selection and live preview of the processed output.</p>
+
+  <div class="macos-window wide">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light red"></div>
+        <div class="traffic-light yellow"></div>
+        <div class="traffic-light green"></div>
+      </div>
+      <div class="titlebar-text">MacMeetingCam Settings</div>
+    </div>
+    <div class="settings-layout">
+      <div class="sidebar">
+        <div class="sidebar-item active">
+          <span class="sidebar-icon">&#x1F3A5;</span> Camera
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F5BC;</span> Background
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F501;</span> Loop
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2328;</span> Hotkeys
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2699;</span> General
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="preview-area">
+          <div class="bg-effect"></div>
+          <div class="silhouette"></div>
+          <div class="preview-badge"><span class="dot"></span> Live</div>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Source Camera</span>
+          <select class="form-select">
+            <option>FaceTime HD Camera</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Resolution</span>
+          <select class="form-select">
+            <option>1920 &times; 1080</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Framerate</span>
+          <select class="form-select">
+            <option>30 fps</option>
+          </select>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="form-row">
+          <span class="form-label">Virtual Camera</span>
+          <span class="status-pill"><span class="dot"></span> Active &mdash; "MacMeetingCam"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== BACKGROUND TAB ==================== -->
+<div class="wireframe-section">
+  <h2>2. Settings Window &mdash; Background Tab</h2>
+  <p class="description">Background effect configuration. Toggle effects, choose mode, adjust intensity, and manage background images.</p>
+
+  <div class="macos-window wide">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light red"></div>
+        <div class="traffic-light yellow"></div>
+        <div class="traffic-light green"></div>
+      </div>
+      <div class="titlebar-text">MacMeetingCam Settings</div>
+    </div>
+    <div class="settings-layout">
+      <div class="sidebar">
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F3A5;</span> Camera
+        </div>
+        <div class="sidebar-item active">
+          <span class="sidebar-icon">&#x1F5BC;</span> Background
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F501;</span> Loop
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2328;</span> Hotkeys
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2699;</span> General
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="form-row">
+          <span class="form-label">Background Effect</span>
+          <div class="form-toggle">
+            <span class="toggle-option active">On</span>
+            <span class="toggle-option">Off</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Mode</span>
+          <div class="mode-tabs">
+            <span class="mode-tab active">Blur</span>
+            <span class="mode-tab">Remove</span>
+            <span class="mode-tab">Replace</span>
+          </div>
+        </div>
+
+        <div class="preview-area" style="aspect-ratio: 16/8;">
+          <div class="bg-effect" style="background: linear-gradient(135deg, rgba(96,165,250,0.2), rgba(96,165,250,0.05)); filter: blur(6px);"></div>
+          <div class="silhouette"></div>
+          <div class="preview-badge"><span class="dot"></span> Effect Active</div>
+        </div>
+
+        <div class="slider-row">
+          <span class="form-label">Blur Intensity</span>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 75%;"></div>
+            <div class="slider-thumb" style="left: 75%;"></div>
+          </div>
+          <span class="slider-value">75%</span>
+        </div>
+
+        <div class="slider-row">
+          <span class="form-label">Edge Softness</span>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 30%;"></div>
+            <div class="slider-thumb" style="left: 30%;"></div>
+          </div>
+          <span class="slider-value">30%</span>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="form-row">
+          <span class="form-label">Backgrounds</span>
+          <div style="font-size: 12px; color: var(--text-dim);">Select an image for Replace mode</div>
+        </div>
+
+        <div class="image-grid" style="padding-left: 146px;">
+          <div class="image-thumb selected bg-1">
+            <div class="thumb-content">Nature</div>
+            <div class="check">&#x2713;</div>
+          </div>
+          <div class="image-thumb bg-2">
+            <div class="thumb-content">Office</div>
+          </div>
+          <div class="image-thumb bg-3">
+            <div class="thumb-content">Wood</div>
+          </div>
+          <div class="image-thumb bg-4">
+            <div class="thumb-content">Abstract</div>
+          </div>
+          <div class="image-thumb add-btn">
+            <div class="thumb-content">+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LOOP TAB ==================== -->
+<div class="wireframe-section">
+  <h2>3. Settings Window &mdash; Loop Tab</h2>
+  <p class="description">Configure the rolling buffer for pause/freeze and seamless loop playback.</p>
+
+  <div class="macos-window wide">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light red"></div>
+        <div class="traffic-light yellow"></div>
+        <div class="traffic-light green"></div>
+      </div>
+      <div class="titlebar-text">MacMeetingCam Settings</div>
+    </div>
+    <div class="settings-layout">
+      <div class="sidebar">
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F3A5;</span> Camera
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F5BC;</span> Background
+        </div>
+        <div class="sidebar-item active">
+          <span class="sidebar-icon">&#x1F501;</span> Loop
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2328;</span> Hotkeys
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2699;</span> General
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="form-row">
+          <span class="form-label">Rolling Buffer</span>
+          <div class="form-toggle">
+            <span class="toggle-option active">On</span>
+            <span class="toggle-option">Off</span>
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <span class="form-label">Buffer Duration</span>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 25%;"></div>
+            <div class="slider-thumb" style="left: 25%;"></div>
+          </div>
+          <span class="slider-value">30 sec</span>
+        </div>
+        <div class="slider-labels">
+          <span>3s</span>
+          <span>120s</span>
+        </div>
+
+        <div class="info-box">
+          <span class="info-icon">&#x2139;</span>
+          <div>
+            <strong>Estimated memory usage: ~1.2 GB</strong><br>
+            30 seconds at 1080p / 30fps. Increase buffer duration for longer loops, but keep an eye on available memory.
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <span class="form-label">Crossfade Duration</span>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 17%;"></div>
+            <div class="slider-thumb" style="left: 17%;"></div>
+          </div>
+          <span class="slider-value">0.5 sec</span>
+        </div>
+        <div class="slider-labels">
+          <span>0.3s</span>
+          <span>1.5s</span>
+        </div>
+
+        <div class="slider-row">
+          <span class="form-label">Resume Transition</span>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 28%;"></div>
+            <div class="slider-thumb" style="left: 28%;"></div>
+          </div>
+          <span class="slider-value">0.3 sec</span>
+        </div>
+        <div class="slider-labels">
+          <span>0.1s</span>
+          <span>1.0s</span>
+        </div>
+
+        <hr class="section-divider">
+
+        <div style="margin-bottom: 8px;">
+          <span class="form-label" style="text-align: left; width: auto; display: block; margin-bottom: 8px;">Buffer Timeline</span>
+        </div>
+        <div class="timeline">
+          <div class="timeline-fill">
+            <div class="timeline-playhead"></div>
+          </div>
+        </div>
+        <div class="timeline-labels">
+          <span>-30s</span>
+          <span>now</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HOTKEYS TAB ==================== -->
+<div class="wireframe-section">
+  <h2>4. Settings Window &mdash; Hotkeys Tab</h2>
+  <p class="description">User-configurable global keyboard shortcuts for key actions.</p>
+
+  <div class="macos-window wide">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light red"></div>
+        <div class="traffic-light yellow"></div>
+        <div class="traffic-light green"></div>
+      </div>
+      <div class="titlebar-text">MacMeetingCam Settings</div>
+    </div>
+    <div class="settings-layout">
+      <div class="sidebar">
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F3A5;</span> Camera
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F5BC;</span> Background
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F501;</span> Loop
+        </div>
+        <div class="sidebar-item active">
+          <span class="sidebar-icon">&#x2328;</span> Hotkeys
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2699;</span> General
+        </div>
+      </div>
+      <div class="content-area">
+        <h3>Global Keyboard Shortcuts</h3>
+
+        <table class="hotkey-table">
+          <tr>
+            <td>Toggle Background Effect</td>
+            <td>
+              <span class="key-combo">
+                <span class="key">&#x2325;</span>
+                <span class="key">&#x2318;</span>
+                <span class="key">B</span>
+              </span>
+              <span class="record-btn">Record</span>
+            </td>
+          </tr>
+          <tr>
+            <td>Toggle Freeze</td>
+            <td>
+              <span class="key-combo">
+                <span class="key">&#x2325;</span>
+                <span class="key">&#x2318;</span>
+                <span class="key">F</span>
+              </span>
+              <span class="record-btn">Record</span>
+            </td>
+          </tr>
+          <tr>
+            <td>Toggle Loop</td>
+            <td>
+              <span class="key-combo">
+                <span class="key">&#x2325;</span>
+                <span class="key">&#x2318;</span>
+                <span class="key">L</span>
+              </span>
+              <span class="record-btn">Record</span>
+            </td>
+          </tr>
+          <tr>
+            <td>Camera On / Off</td>
+            <td>
+              <span class="key-combo">
+                <span class="key">&#x2325;</span>
+                <span class="key">&#x2318;</span>
+                <span class="key">K</span>
+              </span>
+              <span class="record-btn">Record</span>
+            </td>
+          </tr>
+        </table>
+
+        <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 20px;">
+          Click <strong>Record</strong>, then press your desired key combination.<br>
+          Shortcuts work globally, even when the app is in the background.
+        </p>
+
+        <button class="text-btn">Restore Defaults</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GENERAL TAB ==================== -->
+<div class="wireframe-section">
+  <h2>5. Settings Window &mdash; General Tab</h2>
+  <p class="description">App-wide preferences: startup behavior, defaults, and updates.</p>
+
+  <div class="macos-window wide">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light red"></div>
+        <div class="traffic-light yellow"></div>
+        <div class="traffic-light green"></div>
+      </div>
+      <div class="titlebar-text">MacMeetingCam Settings</div>
+    </div>
+    <div class="settings-layout">
+      <div class="sidebar">
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F3A5;</span> Camera
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F5BC;</span> Background
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x1F501;</span> Loop
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-icon">&#x2328;</span> Hotkeys
+        </div>
+        <div class="sidebar-item active">
+          <span class="sidebar-icon">&#x2699;</span> General
+        </div>
+      </div>
+      <div class="content-area">
+        <h3>General</h3>
+
+        <div class="checkbox-row">
+          <div class="fake-checkbox checked">&#x2713;</div>
+          <span>Launch MacMeetingCam at login</span>
+        </div>
+
+        <div class="checkbox-row">
+          <div class="fake-checkbox checked">&#x2713;</div>
+          <span>Show in menubar</span>
+        </div>
+
+        <div class="checkbox-row">
+          <div class="fake-checkbox">&#x2713;</div>
+          <span>Show in Dock</span>
+        </div>
+
+        <div class="checkbox-row">
+          <div class="fake-checkbox checked">&#x2713;</div>
+          <span>Check for updates automatically</span>
+        </div>
+
+        <hr class="section-divider" style="margin: 20px 0;">
+
+        <div class="form-row">
+          <span class="form-label">Default Camera</span>
+          <select class="form-select">
+            <option>Last used camera</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Segmentation Quality</span>
+          <div class="mode-tabs">
+            <span class="mode-tab">Fast</span>
+            <span class="mode-tab active">Balanced</span>
+            <span class="mode-tab">Accurate</span>
+          </div>
+        </div>
+
+        <hr class="section-divider" style="margin: 20px 0;">
+
+        <div style="font-size: 12px; color: var(--text-dim);">
+          MacMeetingCam v1.0.0 &mdash; <a href="#" style="color: var(--accent); text-decoration: none;">Check for Updates</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MENUBAR POPOVER ==================== -->
+<div class="wireframe-section">
+  <h2>6. Menubar Popover</h2>
+  <p class="description">Quick controls accessible from the menubar. Click the camera icon for this popover, right-click for a context menu.</p>
+
+  <div class="flex-row" style="gap: 48px; flex-wrap: wrap;">
+    <!-- Popover -->
+    <div class="menubar-demo">
+      <div class="fake-menubar">
+        <span style="font-size: 12px;">Wi-Fi</span>
+        <span style="font-size: 12px;">Battery</span>
+        <span class="menubar-icon active" style="font-size: 14px;">&#x1F3A5;</span>
+        <span style="font-size: 12px;">10:30</span>
+      </div>
+      <div class="popover-arrow"></div>
+      <div class="popover">
+        <div class="popover-preview">
+          <div class="bg-effect" style="filter: blur(4px);"></div>
+          <div class="silhouette"></div>
+        </div>
+
+        <div class="popover-status">
+          <span class="dot live"></span>
+          <span>Live &mdash; Background Blur Active</span>
+        </div>
+
+        <div class="quick-buttons">
+          <div class="quick-btn active">
+            <div class="btn-icon">&#x1F5BC;</div>
+            <span class="btn-label">BG</span>
+          </div>
+          <div class="quick-btn">
+            <div class="btn-icon">&#x23F8;</div>
+            <span class="btn-label">Freeze</span>
+          </div>
+          <div class="quick-btn">
+            <div class="btn-icon">&#x1F501;</div>
+            <span class="btn-label">Loop</span>
+          </div>
+        </div>
+
+        <div class="popover-camera">
+          <span>Camera</span>
+          <select class="form-select" style="min-width: 150px; font-size: 11px; padding: 4px 24px 4px 8px;">
+            <option>FaceTime HD</option>
+          </select>
+        </div>
+
+        <div class="popover-footer">
+          <a>&#x2699; Settings</a>
+          <a>&#x23FB; Quit</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right-click menu -->
+    <div>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px; text-align: center;">Right-click menu</p>
+      <div class="context-menu">
+        <div class="context-item">FaceTime HD Camera <span style="color: var(--green);">&#x2713;</span></div>
+        <div class="context-item disabled">USB Webcam</div>
+        <div class="context-sep"></div>
+        <div class="context-item">Background Effect <span class="context-shortcut">&#x2325;&#x2318;B</span></div>
+        <div class="context-item">Freeze <span class="context-shortcut">&#x2325;&#x2318;F</span></div>
+        <div class="context-item">Loop <span class="context-shortcut">&#x2325;&#x2318;L</span></div>
+        <div class="context-sep"></div>
+        <div class="context-item">Settings... <span class="context-shortcut">&#x2318;,</span></div>
+        <div class="context-sep"></div>
+        <div class="context-item">Quit <span class="context-shortcut">&#x2318;Q</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menubar icon states -->
+  <div class="annotation" style="max-width: 600px; margin-top: 24px;">
+    <strong>Menubar icon states:</strong> The icon changes appearance to communicate current status at a glance.
+  </div>
+  <div class="menubar-states">
+    <div class="menubar-state">
+      <div class="menubar-state-icon state-live">&#x1F3A5;</div>
+      <div class="menubar-state-label">Live</div>
+    </div>
+    <div class="menubar-state">
+      <div class="menubar-state-icon state-effect">&#x1F3A5;</div>
+      <div class="menubar-state-label">Effect On</div>
+    </div>
+    <div class="menubar-state">
+      <div class="menubar-state-icon state-frozen">&#x23F8;</div>
+      <div class="menubar-state-label">Frozen</div>
+    </div>
+    <div class="menubar-state">
+      <div class="menubar-state-icon state-looping">&#x1F501;</div>
+      <div class="menubar-state-label">Looping</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FLOATING PREVIEW ==================== -->
+<div class="wireframe-section">
+  <h2>7. Floating Mini Preview</h2>
+  <p class="description">Always-on-top detachable window showing the processed feed. Semi-transparent when not hovered. Resizable.</p>
+
+  <div class="flex-row" style="gap: 48px; flex-wrap: wrap; align-items: center;">
+    <div class="floating-preview">
+      <div class="floating-titlebar">
+        <div class="traffic-lights">
+          <div class="traffic-light red"></div>
+          <div class="traffic-light yellow"></div>
+          <div class="traffic-light green"></div>
+        </div>
+        <button class="pin-btn" title="Always on top">&#x1F4CC; Pinned</button>
+      </div>
+      <div class="popover-preview" style="border-radius: 0; margin: 0;">
+        <div class="bg-effect" style="filter: blur(4px);"></div>
+        <div class="silhouette"></div>
+      </div>
+      <div class="floating-controls">
+        <div class="floating-status">
+          <span class="dot live" style="width: 6px; height: 6px; border-radius: 50; background: var(--green);"></span>
+          <span style="color: var(--green);">Live</span>
+        </div>
+        <div class="floating-btns">
+          <div class="floating-btn active" title="Background">&#x1F5BC;</div>
+          <div class="floating-btn" title="Freeze">&#x23F8;</div>
+          <div class="floating-btn" title="Loop">&#x1F501;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation" style="max-width: 280px;">
+      <strong>Behavior:</strong><br>
+      &bull; Drag from popover to detach<br>
+      &bull; 50% opacity when not hovered<br>
+      &bull; Pin button toggles always-on-top<br>
+      &bull; Resizable from any corner<br>
+      &bull; Remembers position &amp; size
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STATES ==================== -->
+<div class="wireframe-section">
+  <h2>8. Popover States</h2>
+  <p class="description">How the menubar popover looks in different modes.</p>
+
+  <div class="flex-row" style="gap: 24px; flex-wrap: wrap;">
+    <!-- Live State -->
+    <div>
+      <p style="font-size: 12px; color: var(--green); margin-bottom: 8px; text-align: center; font-weight: 600;">LIVE</p>
+      <div class="popover" style="width: 240px;">
+        <div class="popover-preview" style="aspect-ratio: 16/10;">
+          <div class="silhouette" style="width: 50px; height: 66px; border-radius: 25px 25px 12px 12px;"></div>
+        </div>
+        <div class="popover-status">
+          <span class="dot live"></span>
+          <span>Live</span>
+        </div>
+        <div class="quick-buttons">
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x1F5BC;</div></div>
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x23F8;</div></div>
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x1F501;</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frozen State -->
+    <div>
+      <p style="font-size: 12px; color: var(--yellow); margin-bottom: 8px; text-align: center; font-weight: 600;">FROZEN</p>
+      <div class="popover" style="width: 240px; border-color: rgba(250,204,21,0.3);">
+        <div class="popover-preview" style="aspect-ratio: 16/10; border: 1px solid rgba(250,204,21,0.3);">
+          <div class="silhouette" style="width: 50px; height: 66px; border-radius: 25px 25px 12px 12px;"></div>
+          <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(250,204,21,0.2); padding: 2px 10px; border-radius: 10px; font-size: 10px; color: var(--yellow);">FROZEN</div>
+        </div>
+        <div class="popover-status">
+          <span class="dot frozen"></span>
+          <span style="color: var(--yellow);">Frozen</span>
+        </div>
+        <div class="quick-buttons">
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x1F5BC;</div></div>
+          <div class="quick-btn active" style="background: var(--yellow); border-color: var(--yellow); color: #000;"><div class="btn-icon" style="font-size: 14px;">&#x23F8;</div></div>
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x1F501;</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Looping State -->
+    <div>
+      <p style="font-size: 12px; color: var(--accent); margin-bottom: 8px; text-align: center; font-weight: 600;">LOOPING</p>
+      <div class="popover" style="width: 240px; border-color: rgba(233,69,96,0.3);">
+        <div class="popover-preview" style="aspect-ratio: 16/10; border: 1px solid rgba(233,69,96,0.3);">
+          <div class="silhouette" style="width: 50px; height: 66px; border-radius: 25px 25px 12px 12px;"></div>
+          <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(233,69,96,0.2); padding: 2px 10px; border-radius: 10px; font-size: 10px; color: var(--accent);">LOOPING 30s</div>
+        </div>
+        <div class="popover-status">
+          <span class="dot looping" style="animation: pulse 1s infinite;"></span>
+          <span style="color: var(--accent);">Looping &mdash; 30s buffer</span>
+        </div>
+        <div class="quick-buttons">
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x1F5BC;</div></div>
+          <div class="quick-btn"><div class="btn-icon" style="font-size: 14px;">&#x23F8;</div></div>
+          <div class="quick-btn active"><div class="btn-icon" style="font-size: 14px;">&#x1F501;</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
