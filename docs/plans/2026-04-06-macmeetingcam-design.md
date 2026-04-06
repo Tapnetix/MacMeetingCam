@@ -177,9 +177,82 @@ MacMeetingCam/
 │   ├── CameraProvider.swift
 │   ├── CameraDevice.swift
 │   └── CameraStream.swift
-└── Shared/                            # Shared between both targets
-    ├── IPCProtocol.swift
-    └── Constants.swift
+├── Shared/                            # Shared between both targets
+│   ├── IPCProtocol.swift
+│   └── Constants.swift
+├── Tests/
+│   ├── UnitTests/                     # XCTest unit test target
+│   │   ├── Pipeline/
+│   │   │   ├── CaptureManagerTests.swift
+│   │   │   ├── CompositorTests.swift
+│   │   │   ├── FrameProcessorTests.swift
+│   │   │   └── ExtensionBridgeTests.swift
+│   │   ├── Segmentation/
+│   │   │   ├── VisionSegmentorTests.swift
+│   │   │   └── MockSegmentor.swift
+│   │   ├── Loop/
+│   │   │   ├── FrameBufferTests.swift
+│   │   │   └── LoopEngineTests.swift
+│   │   ├── Hotkeys/
+│   │   │   └── HotkeyManagerTests.swift
+│   │   ├── App/
+│   │   │   └── AppStateTests.swift
+│   │   ├── Views/
+│   │   │   ├── CameraTabViewTests.swift
+│   │   │   ├── BackgroundTabViewTests.swift
+│   │   │   ├── LoopTabViewTests.swift
+│   │   │   ├── HotkeysTabViewTests.swift
+│   │   │   └── GeneralTabViewTests.swift
+│   │   └── TestHelpers/
+│   │       ├── SyntheticFrameGenerator.swift
+│   │       ├── MockCaptureDevice.swift
+│   │       └── TestConstants.swift
+│   ├── IntegrationTests/              # XCTest integration test target
+│   │   ├── PipelineIntegrationTests.swift
+│   │   ├── IPCIntegrationTests.swift
+│   │   ├── PermissionFlowTests.swift
+│   │   ├── CameraHotPlugTests.swift
+│   │   ├── MemoryStabilityTests.swift
+│   │   └── StatePersistenceTests.swift
+│   ├── E2ETests/                      # XCUITest end-to-end target
+│   │   ├── OnboardingE2ETests.swift
+│   │   ├── CameraTabE2ETests.swift
+│   │   ├── BackgroundTabE2ETests.swift
+│   │   ├── LoopTabE2ETests.swift
+│   │   ├── HotkeysTabE2ETests.swift
+│   │   ├── GeneralTabE2ETests.swift
+│   │   ├── MenubarPopoverE2ETests.swift
+│   │   ├── FloatingPreviewE2ETests.swift
+│   │   ├── FreezeLoopE2ETests.swift
+│   │   ├── ErrorStatesE2ETests.swift
+│   │   ├── VisualRegressionTests.swift
+│   │   └── Helpers/
+│   │       ├── SnapshotTestHelper.swift
+│   │       └── AppLaunchHelper.swift
+│   ├── PerformanceTests/              # XCTest performance test target
+│   │   ├── FrameProcessingBenchmark.swift
+│   │   ├── CPUUsageBenchmark.swift
+│   │   └── MemoryBenchmark.swift
+│   └── ReferenceSnapshots/            # Visual regression reference images
+│       ├── Settings_CameraTab.png
+│       ├── Settings_BackgroundTab.png
+│       ├── Settings_LoopTab.png
+│       ├── Settings_HotkeysTab.png
+│       ├── Settings_GeneralTab.png
+│       ├── Menubar_Live.png
+│       ├── Menubar_Frozen.png
+│       ├── Menubar_Looping.png
+│       ├── FloatingPreview.png
+│       ├── ContextMenu.png
+│       └── Onboarding/
+│           ├── Welcome.png
+│           ├── CameraPermission.png
+│           ├── AccessibilityPermission.png
+│           └── ExtensionApproval.png
+└── Scripts/
+    ├── check-coverage.sh              # Enforces >80% coverage threshold
+    ├── generate-reference-snapshots.sh # Renders wireframes to reference PNGs
+    └── ci-test.sh                     # Full CI test runner
 ```
 
 ## Technology Stack
@@ -188,33 +261,110 @@ MacMeetingCam/
 - **Optional dependencies:** Sparkle (auto-updates), KeyboardShortcuts by Sindre Sorhus (global hotkeys)
 - **Build targets:** `MacMeetingCam` (host app, macOS 14.0+), `CameraExtension` (system extension, embedded)
 - Both targets signed with same team ID (required for Camera Extensions)
+- **Test dependencies:** ViewInspector (SwiftUI unit testing), swift-snapshot-testing (visual regression)
+
+## Test Infrastructure
+
+### Xcode Scheme & Targets
+- **MacMeetingCamTests** — unit test target, linked against main app. Code coverage enabled in scheme settings with >80% threshold
+- **MacMeetingCamIntegrationTests** — integration test target, separate scheme to allow longer timeouts
+- **MacMeetingCamE2ETests** — XCUITest target for full app interaction and visual regression
+- **MacMeetingCamPerformanceTests** — performance benchmark target with baseline assertions
+
+### Coverage Enforcement
+- Xcode scheme configured with "Gather coverage for: all targets" enabled
+- `Scripts/check-coverage.sh` parses `xcodebuild -resultBundlePath` output, extracts line and branch coverage per target, fails if any target is below 80%
+- Coverage report generated as both Xcode `.xcresult` and a human-readable summary written to `Tests/coverage-report.txt`
+- CI runs `Scripts/ci-test.sh` which:
+  1. Builds all targets
+  2. Runs unit tests with coverage
+  3. Runs integration tests
+  4. Runs e2e tests (including visual regression)
+  5. Runs performance benchmarks
+  6. Executes `check-coverage.sh` — fails the pipeline if below threshold
+  7. Archives coverage report as CI artifact
+
+### Visual Regression Infrastructure
+- `Scripts/generate-reference-snapshots.sh` renders `wireframes/index.html` headlessly (via `wkwebview` CLI tool or Safari WebDriver) at each UI section, crops to component bounds, saves as reference PNGs in `Tests/ReferenceSnapshots/`
+- `SnapshotTestHelper.swift` wraps swift-snapshot-testing to:
+  - Capture a screenshot of the current XCUITest window/element
+  - Load the corresponding reference image from `Tests/ReferenceSnapshots/`
+  - Compare with 2% pixel diff tolerance
+  - On failure: save the actual screenshot and a diff image to `Tests/SnapshotFailures/` for review
+- Reference snapshots are committed to git. Updates require explicit approval (PR diff shows image changes)
+- Snapshots captured at a fixed window size (1280x800 for settings, native size for popover/floating) to ensure deterministic comparisons
+
+### CI Pipeline (GitHub Actions)
+- Triggered on every push and PR
+- Runs on macOS runner (required for XCUITest and Camera framework access)
+- Test matrix: macOS 14 (Sonoma) — expand to macOS 15 when supported
+- Artifacts: coverage report, snapshot failure diffs (if any), performance benchmark results
+- **Merge gates:** all tests pass, coverage >80%, no snapshot regressions
 
 ## Testing Strategy
 
-### Unit Tests
-- `PersonSegmentor` protocol conformance with mock segmentor
-- `FrameBuffer` ring buffer: capacity, overwrite, crossfade generation, edge cases
-- `LoopEngine`: playback timing, crossfade math, resume transition
-- `HotkeyManager`: registration/deregistration, conflict detection
-- `AppState`: state transitions (live ↔ frozen ↔ looping, combined states)
+**Coverage requirement: >80% of ALL code paths.** Every code path must be covered by at least one test tier. If a path cannot be unit tested, it must be covered by integration tests. If it cannot be integration tested, it must be covered by end-to-end tests. No exceptions.
+
+### Unit Tests (target: >80% line + branch coverage)
+
+**Pipeline:**
+- `PersonSegmentor` protocol conformance with mock segmentor — verify mask dimensions, pixel format, error handling for invalid inputs
+- `VisionSegmentor` — test with known reference images, verify mask quality thresholds, test `.balanced` vs `.accurate` modes
+- `Compositor` — test each compositing mode (blur, remove, replace) with known inputs, verify output pixel values, edge feathering correctness
+- `FrameBuffer` ring buffer — capacity limits, overwrite behavior, crossfade frame generation, partially-filled buffer, single-frame edge case, zero-duration edge case, memory accounting accuracy
+- `LoopEngine` — playback timing accuracy, crossfade blending math (verify alpha interpolation), resume transition, activation mid-buffer, deactivation at various loop positions
+
+**App Logic:**
+- `HotkeyManager` — registration/deregistration, conflict detection, modifier key combinations, persistence of custom bindings
+- `AppState` — all state transitions: live → frozen → live, live → looping → live, frozen → looping, combined states (background effect + loop), invalid transitions rejected
+- `CaptureManager` — camera enumeration, selection, format negotiation, disconnect/reconnect handling
+- `ExtensionBridge` — IPC message serialization, frame metadata correctness, connection lifecycle
+
+**Views (SwiftUI previews + ViewInspector):**
+- All settings tab views render without crashes for every combination of state
+- Controls are bound to correct state properties
+- Disabled/enabled states reflect permissions and app state
 
 ### Integration Tests
-- Full pipeline with synthetic frames: capture → segmentation → compositing → buffer → output
-- Camera Extension IPC: frame format and timing verification
-- Permission flow: reduced-mode behavior when permissions denied
 
-### Manual Testing Checklist
-- Virtual camera visible in Zoom, Teams, Google Meet, FaceTime, WebEx
-- Background effects render correctly at 720p and 1080p
-- Freeze/loop activation with no visible glitch to participants
-- Loop crossfade seamlessness (recorded test call review)
-- Camera hot-plug (connect/disconnect USB mid-session)
-- Memory stability during 30+ minute buffer recording
-- Sleep/wake cycle behavior
-- Multiple simultaneous meeting app consumers
+- **Full pipeline end-to-end:** Feed synthetic frames through capture → segmentation → compositing → buffer → output. Verify frame counts, timing, pixel format consistency, and no frame drops at 30fps for 10-second runs
+- **Camera Extension IPC:** Verify frames arrive at the extension with correct format, resolution, and timing. Test connection drop and reconnection
+- **Permission flow:** Test reduced-mode behavior when each permission is denied (camera, accessibility, extension)
+- **Camera hot-plug:** Simulate device connect/disconnect, verify graceful fallback and auto-recovery
+- **Memory stability:** Run loop buffer at max duration (120s) for extended period, verify no memory leaks via XCTest memory metrics
+- **State persistence:** Verify all user settings survive app restart (camera selection, background images, hotkeys, slider values, buffer duration)
+
+### End-to-End Tests (XCUITest)
+
+**Coverage requirement:** Every user-facing feature must have at least one end-to-end test. These tests exercise the full app as a user would.
+
+**Functional tests:**
+- App launches, onboarding flow completes, virtual camera registers and appears in camera list
+- Camera tab: select camera, change resolution/framerate, verify preview updates
+- Background tab: toggle effect on/off, switch between blur/remove/replace modes, adjust sliders, add/select/remove background images
+- Loop tab: toggle buffer, adjust duration slider (verify memory estimate updates), adjust crossfade sliders
+- Hotkeys tab: record new shortcut, verify it activates from background, restore defaults
+- General tab: toggle all checkboxes, change segmentation quality
+- Menubar popover: opens on click, shows correct status, quick toggles work, camera dropdown works
+- Freeze mode: activate via popover button, verify status changes, deactivate and verify resume
+- Loop mode: activate via popover button, verify status changes, deactivate and verify resume
+- Floating preview: detach from popover, verify pin toggle, verify controls mirror popover state
+- Right-click context menu: all items present and functional
+- Error states: verify banner appears when permissions missing, camera disconnected state shows correctly
+
+**Visual regression tests (snapshot-based):**
+- All five settings tabs captured and compared against reference snapshots derived from wireframes
+- Menubar popover in all three states (live, frozen, looping) compared against reference snapshots
+- Floating mini preview compared against reference snapshot
+- Right-click context menu compared against reference snapshot
+- Onboarding screens compared against reference snapshots
+- **Tolerance:** Pixel diff threshold of 2% to account for antialiasing and system rendering differences
+- **Reference images:** Generated from the wireframes (`wireframes/index.html`) and stored in `Tests/ReferenceSnapshots/`
+- **CI enforcement:** Snapshot tests run on every PR. Failures block merge. Updated snapshots require explicit approval
 
 ### Performance Benchmarks
 - Frame processing latency: < 20ms per frame at 1080p/30fps
 - Idle CPU (buffer recording, no effects): < 5%
 - Active CPU (segmentation + blur): < 15%
 - Memory baseline without loop buffer: < 100MB
+- Performance tests run as XCTest performance metrics with baseline assertions, failing the build if regressions exceed 10%
