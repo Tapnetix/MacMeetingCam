@@ -143,5 +143,6 @@ schemes:
         - MacMeetingCam
       targets:
         - MacMeetingCamTests
+        - MacMeetingCamIntegrationTests
         - MacMeetingCamE2ETests
         - MacMeetingCamPerformanceTests
