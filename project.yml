@@ -136,6 +136,7 @@ schemes:
         MacMeetingCamTests: [test]
         MacMeetingCamIntegrationTests: [test]
         MacMeetingCamE2ETests: [test]
+        MacMeetingCamPerformanceTests: [test]
     test:
       gatherCoverageData: true
       coverageTargets:
@@ -143,3 +144,4 @@ schemes:
       targets:
         - MacMeetingCamTests
         - MacMeetingCamE2ETests
+        - MacMeetingCamPerformanceTests
