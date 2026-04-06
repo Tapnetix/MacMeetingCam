@@ -11,6 +11,7 @@ MacMeetingCam is a macOS virtual camera app (Sonoma 14.0+) that provides backgro
 - **UI Framework:** SwiftUI (with minimal AppKit bridges where needed)
 - **Camera Sources:** Any camera macOS recognizes (built-in, USB, capture cards)
 - **Background Sources (v1):** Static images (JPEG/PNG), with blur and solid color modes
+- **Dependency Management:** Swift Package Manager (Xcode-integrated)
 
 ## Architecture
 
@@ -26,6 +27,15 @@ Three main components:
 
 Runs per-frame, targeting 30fps minimum (matching source camera framerate).
 
+### Threading Model
+Each pipeline stage has its own dedicated serial dispatch queue. Frames flow forward through the pipeline:
+- **Capture queue** → receives `CMSampleBuffer` from `AVCaptureSession`
+- **Processing queue** → runs segmentation + compositing
+- **Output queue** → writes to loop buffer + sends to Camera Extension via IPC
+- **Main thread** → UI updates only, via `@Published` properties on `@MainActor`
+
+This linear serial-queue-per-stage model is the proven pattern for real-time video on Apple platforms. No shared mutable state between queues — frames are passed forward as values.
+
 ### Capture Stage
 - `AVCaptureSession` with user-selected camera as input
 - Outputs `CMSampleBuffer` frames to a dedicated serial dispatch queue
@@ -40,8 +50,9 @@ Runs per-frame, targeting 30fps minimum (matching source camera framerate).
 - Core Image (`CIFilter` chain):
   - **Blur:** `CIGaussianBlur` on background region (inverted mask), user-adjustable radius
   - **Remove:** Replace background with solid color
-  - **Replace:** Composite masked foreground over user's background image
+  - **Replace:** Composite masked foreground over user's background image, scaled via aspect-fill (crop to fit, no letterboxing)
 - Edge refinement: feathering via `CIGaussianBlur` on the mask itself
+- Segments all people in frame (Apple Vision default). No single-person isolation in v1
 
 ### Output Stage
 - Composited frame written to both the rolling loop buffer and Camera Extension via IPC
@@ -50,15 +61,18 @@ Runs per-frame, targeting 30fps minimum (matching source camera framerate).
 ## Pause & Loop System
 
 ### Rolling Buffer
-- Ring buffer of processed frames, user-configurable duration (3–120 seconds, uncapped input with 120s max)
+- Ring buffer of `(CVPixelBuffer, CMTime)` tuples — each frame carries its presentation timestamp for framerate-independent playback
+- User-configurable duration (3–120 seconds, uncapped input with 120s max)
 - At 30fps/1080p, 30 seconds ≈ 900 frames, ~1.2GB memory. Estimated usage displayed in settings.
 - Starts filling when the app is active and a camera is selected
 - Always recording (no manual start required)
+- **Resolution/camera change:** Buffer is flushed and refilled from scratch. If the user is currently frozen or looping, a confirmation dialog appears: "Changing resolution will end the current loop. Continue?"
 
 ### Freeze Mode
 - Hotkey or button press → last frame held and continuously output
 - Visually instant, no transition needed
 - Menubar icon changes state (not visible to meeting participants)
+- **Activation feedback:** Visual only — menubar icon state change + brief "Frozen" overlay on floating preview (fades after 1s). No sound, no haptic, no system notification. Nothing that could leak via screen share
 
 ### Loop Mode
 - Activates on hotkey → current buffer contents become loop source
@@ -66,6 +80,12 @@ Runs per-frame, targeting 30fps minimum (matching source camera framerate).
 - **Crossfade blending:** Last ~0.5–1s crossfades into first ~0.5–1s, pre-computed at activation
 - Formula: `output = frame_end * (1-t) + frame_start * t`
 - Deactivation: crossfades from current loop position back to live feed over ~0.3s
+
+### Effect Changes While Frozen/Looping
+- Effect controls remain enabled while frozen or looping
+- Changes (blur intensity, background image, mode switches) are **deferred** — they take effect when the user resumes live mode
+- A subtle label in the Background tab shows "Changes apply when live" while frozen/looping
+- This lets users prepare their next look while looping without complex real-time reprocessing
 
 ### Resume Behavior
 - Both freeze and loop resume with brief crossfade to live video
@@ -82,7 +102,7 @@ Runs per-frame, targeting 30fps minimum (matching source camera framerate).
 ### IPC
 - **Primary:** `IOSurface` shared memory for frame data (fastest path)
 - XPC connection for signaling ("new frame ready") and control messages (start/stop, resolution, framerate)
-- If host app not running, extension outputs static placeholder frame
+- If host app not running, extension outputs the last received frame (freeze) as graceful degradation. Falls back to a static placeholder only if no frame was ever received
 
 ### Lifecycle
 - macOS manages extension activation/suspension
@@ -113,6 +133,11 @@ Tabbed layout with sidebar navigation:
 
 All actions available via both hotkeys and clickable UI elements.
 
+### Window & Dock Behavior
+- Closing the settings window hides it (does not quit). App continues running via menubar
+- If dock icon is hidden, settings are accessible via menubar popover → "Settings" or via Cmd+, when any app window is focused
+- **Quit protection:** Cmd+Q triggers a confirmation dialog if the virtual camera is actively in use by a meeting app: "MacMeetingCam is in use by Zoom. Quit anyway?" If no consumer is active, quits immediately without prompt
+
 ## First-Run Experience
 
 Sequential onboarding:
@@ -125,6 +150,13 @@ Sequential onboarding:
 
 **Degraded mode:** If permissions denied, app remains functional where possible (e.g., no global hotkeys but buttons still work). Persistent dismissable banner shows missing permissions with fix buttons.
 
+## Settings Persistence
+
+- **User preferences** (toggles, sliders, hotkeys, selected camera, segmentation quality): stored in `UserDefaults`
+- **Background images:** Referenced by file path via security-scoped bookmarks (not copied). Original files remain in-place. If the source file is deleted or moved, the image is removed from the grid and the app falls back to "remove" mode (no background)
+- **Thumbnail cache:** Small preview thumbnails cached in `~/Library/Application Support/MacMeetingCam/Thumbnails/` for fast UI rendering. Regenerated on demand if missing
+- **Floating preview state** (position, size, pin status): stored in `UserDefaults`, restored on launch
+
 ## Error Handling
 
 - **Camera disconnected:** Hold last good frame (freeze), warn in menubar, auto-reconnect when camera returns
@@ -133,6 +165,8 @@ Sequential onboarding:
 - **Memory pressure:** Notify user, auto-reduce buffer to 3s minimum if critical
 - **Multiple consumers:** Handled natively by `CMIOExtension`, all see same feed
 - **Extension failure:** "Reinstall Extension" button, diagnostics logged to `~/Library/Logs/MacMeetingCam/`
+- **Host app crash:** Extension holds the last received frame (participants see a freeze — looks like "bad internet"). App registers with `launchd` for auto-relaunch on crash. On relaunch, reconnects to the extension, resumes pipeline with last-known settings. Recovery takes 2–5 seconds
+- **Background image missing:** If a referenced image file is deleted/moved, remove it from the image grid silently. If it was the active background, fall back to "remove" mode. No error dialog — the user deleted the file intentionally
 
 ## Project Structure
 
@@ -170,6 +204,10 @@ MacMeetingCam/
 │   │   └── LoopEngine.swift
 │   ├── Hotkeys/
 │   │   └── HotkeyManager.swift
+│   ├── Persistence/
+│   │   ├── SettingsStore.swift          # UserDefaults wrapper
+│   │   ├── BackgroundImageStore.swift   # Security-scoped bookmark management
+│   │   └── ThumbnailCache.swift         # Background image thumbnail cache
 │   └── Resources/
 │       └── Assets.xcassets
 ├── CameraExtension/                   # CMIOExtension target
@@ -249,11 +287,28 @@ MacMeetingCam/
 │           ├── CameraPermission.png
 │           ├── AccessibilityPermission.png
 │           └── ExtensionApproval.png
-└── Scripts/
-    ├── check-coverage.sh              # Enforces >80% coverage threshold
-    ├── generate-reference-snapshots.sh # Renders wireframes to reference PNGs
-    └── ci-test.sh                     # Full CI test runner
+├── Scripts/
+│   ├── check-coverage.sh              # Enforces >80% coverage threshold
+│   ├── generate-reference-snapshots.sh # Renders wireframes to reference PNGs
+│   ├── setup-dev.sh                   # Patches team ID/bundle ID for contributors
+│   └── ci-test.sh                     # Full CI test runner
+└── DeveloperSetup.md                  # Contributor guide for signing & building
 ```
+
+## Code Signing & Entitlements
+
+### Required Entitlements
+- **Host app:** `com.apple.developer.system-extension.install` (to install the Camera Extension)
+- **Camera Extension:** `com.apple.developer.system-extension.provider` with `com.apple.developer.system-extension.provider.category: com.apple.system-extension.cmio`
+- Both targets must be signed with the same team ID
+
+### Open Source Contributor Setup
+Two Xcode schemes are provided:
+
+1. **MacMeetingCam (Full)** — Builds both the host app and Camera Extension. Requires a valid Apple Developer account for code signing. A `Scripts/setup-dev.sh` script patches team ID and bundle identifiers in the Xcode project for the contributor's account
+2. **MacMeetingCam (No Extension)** — Builds only the host app without the Camera Extension. Processed video previews in-app but no virtual camera is registered. Lets contributors work on UI, pipeline, segmentation, and loop logic without any signing setup. This covers the majority of contribution surface area
+
+A `DeveloperSetup.md` guide walks through both paths.
 
 ## Technology Stack
 
@@ -319,6 +374,9 @@ MacMeetingCam/
 - `AppState` — all state transitions: live → frozen → live, live → looping → live, frozen → looping, combined states (background effect + loop), invalid transitions rejected
 - `CaptureManager` — camera enumeration, selection, format negotiation, disconnect/reconnect handling
 - `ExtensionBridge` — IPC message serialization, frame metadata correctness, connection lifecycle
+- `SettingsStore` — persistence round-trip for all setting types, migration from older versions
+- `BackgroundImageStore` — bookmark creation/resolution, handling of deleted/moved source files, graceful fallback
+- `ThumbnailCache` — cache hit/miss, regeneration on demand, cleanup of orphaned thumbnails
 
 **Views (SwiftUI previews + ViewInspector):**
 - All settings tab views render without crashes for every combination of state
