@@ -1,0 +1,145 @@
+name: MacMeetingCam
+options:
+  bundleIdPrefix: com.tapnetix
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+  minimumXcodeGenVersion: "2.38.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGNING_REQUIRED: "NO"
+
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: "2.0.0"
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.5.0"
+  ViewInspector:
+    url: https://github.com/nalexn/ViewInspector
+    from: "0.10.0"
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.15.0"
+
+targets:
+  MacMeetingCam:
+    type: application
+    platform: macOS
+    sources:
+      - path: MacMeetingCam
+      - path: Shared
+    dependencies:
+      - package: KeyboardShortcuts
+      - package: Sparkle
+      - target: CameraExtension
+        embed: true
+        codeSign: true
+    settings:
+      base:
+        INFOPLIST_FILE: MacMeetingCam/Resources/Info.plist
+
+  CameraExtension:
+    type: system-extension
+    platform: macOS
+    sources:
+      - path: CameraExtension
+      - path: Shared
+    settings:
+      base:
+        INFOPLIST_FILE: CameraExtension/Resources/Info.plist
+
+  MacMeetingCamTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/UnitTests
+      - path: Tests/TestHelpers
+    dependencies:
+      - target: MacMeetingCam
+      - package: ViewInspector
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MacMeetingCam.app/Contents/MacOS/MacMeetingCam"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+  MacMeetingCamIntegrationTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/IntegrationTests
+      - path: Tests/TestHelpers
+    dependencies:
+      - target: MacMeetingCam
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MacMeetingCam.app/Contents/MacOS/MacMeetingCam"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+  MacMeetingCamE2ETests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: Tests/E2ETests
+    dependencies:
+      - target: MacMeetingCam
+      - package: SnapshotTesting
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+
+  MacMeetingCamPerformanceTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/PerformanceTests
+      - path: Tests/TestHelpers
+    dependencies:
+      - target: MacMeetingCam
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MacMeetingCam.app/Contents/MacOS/MacMeetingCam"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  MacMeetingCam:
+    build:
+      targets:
+        MacMeetingCam: all
+        CameraExtension: all
+        MacMeetingCamTests: [test]
+        MacMeetingCamIntegrationTests: [test]
+        MacMeetingCamE2ETests: [test]
+        MacMeetingCamPerformanceTests: [test]
+    test:
+      gatherCoverageData: true
+      coverageTargets:
+        - MacMeetingCam
+      targets:
+        - MacMeetingCamTests
+        - MacMeetingCamIntegrationTests
+        - MacMeetingCamE2ETests
+        - MacMeetingCamPerformanceTests
+
+  "MacMeetingCam (No Extension)":
+    build:
+      targets:
+        MacMeetingCam: all
+        MacMeetingCamTests: [test]
+        MacMeetingCamIntegrationTests: [test]
+        MacMeetingCamE2ETests: [test]
+    test:
+      gatherCoverageData: true
+      coverageTargets:
+        - MacMeetingCam
+      targets:
+        - MacMeetingCamTests
+        - MacMeetingCamE2ETests
