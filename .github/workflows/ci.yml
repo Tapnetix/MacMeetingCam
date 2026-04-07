@@ -1,16 +1,15 @@
-# .github/workflows/ci.yml
 name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
   test:
     name: Build & Test
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
 
     steps:
@@ -20,44 +19,90 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app || sudo xcode-select -s /Applications/Xcode_16.1.app || sudo xcode-select -s /Applications/Xcode_16.0.app || sudo xcode-select -s /Applications/Xcode.app
+
       - name: Generate Xcode Project
-        run: xcodegen generate
+        run: |
+          xcodegen generate
+          ls -la MacMeetingCam.xcodeproj/
+
+      - name: Resolve SPM Dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -scheme "MacMeetingCam (No Extension)" \
+            -clonedSourcePackagesDirPath .spm-cache
 
       - name: Build
         run: |
+          set -o pipefail
           xcodebuild build-for-testing \
             -scheme "MacMeetingCam (No Extension)" \
             -destination "platform=macOS" \
-            2>&1 | tail -5
+            -clonedSourcePackagesDirPath .spm-cache \
+            | xcpretty || true
+          # Verify build succeeded
+          xcodebuild build-for-testing \
+            -scheme "MacMeetingCam (No Extension)" \
+            -destination "platform=macOS" \
+            -clonedSourcePackagesDirPath .spm-cache \
+            -quiet
 
       - name: Run Unit Tests
         run: |
+          set -o pipefail
           xcodebuild test-without-building \
             -scheme "MacMeetingCam (No Extension)" \
             -destination "platform=macOS" \
             -only-testing:MacMeetingCamTests \
             -resultBundlePath .build/results.xcresult \
             -enableCodeCoverage YES \
-            2>&1 | tail -20
+            -clonedSourcePackagesDirPath .spm-cache \
+            2>&1 | tee /tmp/unit-test-output.log | grep -E "(Test Suite|Executed|error:)" || true
+          # Check for test failures
+          grep "Executed" /tmp/unit-test-output.log | grep -q "0 failures" || exit 1
 
       - name: Run Integration Tests
         run: |
+          set -o pipefail
           xcodebuild test-without-building \
             -scheme "MacMeetingCam (No Extension)" \
             -destination "platform=macOS" \
             -only-testing:MacMeetingCamIntegrationTests \
-            2>&1 | tail -20
+            -clonedSourcePackagesDirPath .spm-cache \
+            2>&1 | tee /tmp/integration-test-output.log | grep -E "(Test Suite|Executed|error:)" || true
+          grep "Executed" /tmp/integration-test-output.log | grep -q "0 failures" || exit 1
 
       - name: Run E2E Tests
         run: |
+          set -o pipefail
           xcodebuild test-without-building \
             -scheme "MacMeetingCam (No Extension)" \
             -destination "platform=macOS" \
             -only-testing:MacMeetingCamE2ETests \
-            2>&1 | tail -20
+            -clonedSourcePackagesDirPath .spm-cache \
+            2>&1 | tee /tmp/e2e-test-output.log | grep -E "(Test Suite|Executed|error:)" || true
+          grep "Executed" /tmp/e2e-test-output.log | grep -q "0 failures" || exit 1
+
+      - name: Run Performance Tests
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -scheme "MacMeetingCam (No Extension)" \
+            -destination "platform=macOS" \
+            -only-testing:MacMeetingCamPerformanceTests \
+            -clonedSourcePackagesDirPath .spm-cache \
+            2>&1 | tee /tmp/perf-test-output.log | grep -E "(Test Suite|Executed|error:)" || true
+          grep "Executed" /tmp/perf-test-output.log | grep -q "0 failures" || exit 1
 
       - name: Check Coverage
-        run: ./Scripts/check-coverage.sh .build/results.xcresult 90
+        if: always()
+        run: |
+          if [ -d ".build/results.xcresult" ]; then
+            ./Scripts/check-coverage.sh .build/results.xcresult 90
+          else
+            echo "No result bundle found — skipping coverage check"
+          fi
 
       - name: Upload Coverage Report
         if: always()
@@ -65,6 +110,7 @@ jobs:
         with:
           name: coverage-report
           path: Tests/coverage-report.txt
+          if-no-files-found: ignore
 
       - name: Upload Snapshot Failures
         if: failure()
@@ -72,3 +118,4 @@ jobs:
         with:
           name: snapshot-failures
           path: Tests/SnapshotFailures/
+          if-no-files-found: ignore

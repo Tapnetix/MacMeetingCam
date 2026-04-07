@@ -3,7 +3,6 @@ options:
   bundleIdPrefix: com.tapnetix
   deploymentTarget:
     macOS: "14.0"
-  xcodeVersion: "15.0"
   minimumXcodeGenVersion: "2.38.0"
 
 settings:
